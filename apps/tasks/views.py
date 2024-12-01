@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy
 from django.contrib import messages
+
 from .forms import TaskForm, Task
 
 
@@ -21,10 +21,10 @@ def create_task(request):
     return render(request, 'create_task.html', {'form': form})
 
 
-
 def task_list(request):
     tasks = Task.objects.all()
     context = {
         'tasks': tasks
     }
     return render(request, 'task_list.html', context)
+

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Вход
+{% endblock %}
+
+
+{% block content %}
+
+    <form action="{% url 'login' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+    <div class="border-top pt-3">
+        <small class="text-muted">
+            Забыли пароль? <a href="{% url 'password_reset' %}">Сбросить пароль</a>
+        </small>
+    </div>
+    <div class="border-top pt-3">
+        <small class="text-muted">
+            Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+        </small>
+    </div>
+
+{% endblock %}
