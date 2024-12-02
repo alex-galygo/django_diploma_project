@@ -5,10 +5,18 @@
 {% endblock %}
 
 {% block content %}
-    <div class="card mb-3">
-        <div class="card-body">
-            {% csrf_token %}
-            {{ form.as_p }}
-        </div>
+    <h1>Добро пожаловать в приложение "Задачи"!</h1>
+
+    <p>Здесь вы можете создавать задачи, устанавливать приоритеты и отмечать их выполнение.</p>
+
+    <p>Для начала работы войдите в свою учетную запись</p>
+
+    <a href="{% url 'login' %}" class="btn btn-primary">Войти</a>
+
+    <div class="border-top pt-3">
+        <small class="text-muted">
+            Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+        </small>
     </div>
+
 {% endblock %}
