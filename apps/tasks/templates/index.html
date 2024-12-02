@@ -1,22 +1,63 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    Задачи
+    Добро пожаловать | Система управления задачами
 {% endblock %}
 
 {% block content %}
-    <h1>Добро пожаловать в приложение "Задачи"!</h1>
+    <style>
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+            box-sizing: border-box;
+        }
+    </style>
 
-    <p>Здесь вы можете создавать задачи, устанавливать приоритеты и отмечать их выполнение.</p>
+    <div class="main-container">
+        <div class="card shadow-sm">
+            <div class="card-body p-5">
+                <h1 class="display-5 text-center mb-4">Управляйте задачами легко</h1>
 
-    <p>Для начала работы войдите в свою учетную запись</p>
+                <p class="lead text-center mb-5">
+                    Создавайте задачи, устанавливайте приоритеты и отслеживайте прогресс в одном месте
+                </p>
 
-    <a href="{% url 'login' %}" class="btn btn-primary">Войти</a>
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-list-check fs-1 text-primary mb-3"></i>
+                            <h4>Создание задач</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-arrow-up-circle fs-1 text-primary mb-3"></i>
+                            <h4>Приоритеты</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-check2-circle fs-1 text-primary mb-3"></i>
+                            <h4>Отслеживание</h4>
+                        </div>
+                    </div>
+                </div>
 
-    <div class="border-top pt-3">
-        <small class="text-muted">
-            Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
-        </small>
+                <div class="d-grid gap-3 col-md-6 mx-auto">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+                    </a>
+
+                    <div class="text-center">
+                        <span class="text-muted">Нет аккаунта?</span>
+                        <a href="{% url 'register' %}" class="text-decoration-none ms-2">
+                            Зарегистрироваться
+                            <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
 {% endblock %}
