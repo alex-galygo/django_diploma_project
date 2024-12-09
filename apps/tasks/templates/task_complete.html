@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Подтверждение завершения задачи
+{% endblock %}
+
+{% block content %}
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title mb-4">Подтверждение завершения задачи </h5>
+                        <p class="card-text">Вы уверены, что выполнили задачу "{{ object.title }}"?</p>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-flex justify-content-center gap-3">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi-check-circle"></i>Подтвердить
+                                </button>
+                                <a href="{% url 'index' %}" class="btn btn-secondary">
+                                    <i class="bi-x-circle me-2"></i>Отмена
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

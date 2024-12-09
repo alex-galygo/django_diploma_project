@@ -14,9 +14,10 @@ class Task(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ('NEW', 'Новая'),
-        ('IN_PROGRESS', 'В работе'),
+        ('ACTIVЕ', 'Активна'),
         ('DONE', 'Выполнена'),
+
+
     ]
 
     title = models.CharField(max_length=100, verbose_name='Заголовок')
@@ -25,20 +26,28 @@ class Task(models.Model):
                              related_name='tasks',
                              verbose_name='Пользователь')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    due_date = models.DateTimeField(verbose_name='Срок выполнения', blank=True, null=True)
+    due_date = models.DateField(verbose_name='Дата выполнения', blank=True, null=True)
     priority = models.CharField(max_length=10,
                                 choices=PRIORITY_CHOICES,
                                 default='MEDIUM',
                                 verbose_name='Приоритет')
     status = models.CharField(max_length=11,
                               choices=STATUS_CHOICES,
-                              default='NEW',
+                              default='ACTIVЕ',
                               verbose_name='Статус')
+
+    is_favorite = models.BooleanField(default=False, verbose_name='В избранном')
 
     class Meta:
         verbose_name = 'Задачу'
         verbose_name_plural = 'Задачи'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['created_at']),
+            models.Index(fields=['priority']),
+            models.Index(fields=['due_date']),
+            models.Index(fields=['is_favorite']),
+        ]
 
     def __str__(self):
         return self.title
@@ -57,7 +66,7 @@ class FavoriteTask(models.Model):
     added_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата добавления')
 
     class Meta:
-        verbose_name = 'Избранная задача'
+        verbose_name = 'Избранную задачу'
         verbose_name_plural = 'Избранные задачи'
         unique_together = ['user', 'task']
 

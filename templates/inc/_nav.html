@@ -17,6 +17,14 @@
                             <a class="nav-link" href="{% url 'create_task' %}">Добавить задачу</a>
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'task_favorite' %}">Избранные задачи</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'task_list_complete' %}">Выполненные задачи</a>
+                        </li>
+
                     </ul>
                 {% endif %}
 
