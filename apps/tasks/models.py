@@ -3,20 +3,15 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 
-# Create your models here.
-
-
 class Task(models.Model):
-    PRIORITY_CHOICES = [
-        ('LOW', 'Низкий'),
-        ('MEDIUM', 'Средний'),
-        ('HIGH', 'Высокий'),
-    ]
+    class Priority(models.IntegerChoices):
+        LOW = 1, 'Низкий'
+        MEDIUM = 2, 'Средний'
+        HIGH = 3, 'Высокий'
 
     STATUS_CHOICES = [
         ('ACTIVЕ', 'Активна'),
         ('DONE', 'Выполнена'),
-
 
     ]
 
@@ -27,10 +22,9 @@ class Task(models.Model):
                              verbose_name='Пользователь')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     due_date = models.DateField(verbose_name='Дата выполнения', blank=True, null=True)
-    priority = models.CharField(max_length=10,
-                                choices=PRIORITY_CHOICES,
-                                default='MEDIUM',
-                                verbose_name='Приоритет')
+    priority = models.IntegerField(choices=Priority.choices,
+                                   default=Priority.MEDIUM,
+                                   verbose_name='Приоритет')
     status = models.CharField(max_length=11,
                               choices=STATUS_CHOICES,
                               default='ACTIVЕ',

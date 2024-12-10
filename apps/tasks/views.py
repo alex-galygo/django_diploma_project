@@ -24,7 +24,7 @@ class AddTask(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class TaskListView(LoginRequiredMixin, ListView, SortMixin):
+class TaskListView(ListView, SortMixin):
     model = Task
     template_name = 'task_list.html'
     context_object_name = 'tasks'
@@ -109,27 +109,6 @@ class TaskDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def handle_no_permission(self):
         messages.error(self.request, "У вас нет прав для удаления этой задачи")
         return redirect('index')
-
-
-# class TaskCompleteView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-#     model = Task
-#     fields = []
-#     template_name = 'task_complete.html'
-#     success_url = reverse_lazy('index')
-#
-#     def test_func(self):
-#         task = self.get_object()
-#         return task.user == self.request.user
-#
-#     def handle_no_permission(self):
-#         messages.error(self.request, "У вас нет прав для выполнения этой задачи")
-#         return redirect('index')
-#
-#     def form_valid(self, form):
-#         task = form.save(commit=False)
-#         task.status = 'DONE'
-#         task.save()
-#         return super().form_valid(form)
 
 
 class TaskCompleteView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -225,7 +204,7 @@ class FavoriteTaskListView(LoginRequiredMixin, ListView):
 
 
 @login_required
-def add_to_favorite(request, task_id):  # используем task_id вместо pk
+def add_to_favorite(request, task_id):
     if request.method == 'POST':
         favorite = FavoriteTask.objects.filter(
             user=request.user,

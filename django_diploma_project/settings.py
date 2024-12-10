@@ -38,6 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.tasks',
     'apps.accounts',
+    # API
+    'rest_framework',
+    'rest_framework.authtoken',
+    'apps.tasks_api',
+    'django_filters',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -136,3 +142,27 @@ EMAIL_HOST_USER = 'djangopost58@gmail.com'
 EMAIL_HOST_PASSWORD = 'cxzy osjq qkse xrha'
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 5,
+
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Tasks DRF API',
+    'DESCRIPTION': 'Tasks DRF API description',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': '/api/v1/',
+}

@@ -233,9 +233,9 @@
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="card-title mb-0">{{ task.title }}</h5>
                                 <div>
-                                    {% if task.priority == 'HIGH' %}
+                                    {% if task.priority == 3 %}
                                         <span class="badge bg-danger">{{ task.get_priority_display }}</span>
-                                    {% elif task.priority == 'MEDIUM' %}
+                                    {% elif task.priority == 2 %}
                                         <span class="badge bg-warning">{{ task.get_priority_display }}</span>
                                     {% else %}
                                         <span class="badge bg-secondary">{{ task.get_priority_display }}</span>

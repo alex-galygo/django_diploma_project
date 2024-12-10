@@ -28,6 +28,8 @@ urlpatterns = [
 
     path('accounts/', include('django.contrib.auth.urls')),
 
+    path('api/v1/', include('apps.tasks_api.urls')),
+
 ]
 
 if settings.DEBUG:
