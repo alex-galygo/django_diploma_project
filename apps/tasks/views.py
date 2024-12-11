@@ -13,6 +13,38 @@ from .forms import TaskForm
 from .mixins import SortMixin
 
 
+class BaseTaskListView(ListView):
+    model = Task
+    template_name = 'task_list.html'
+    context_object_name = 'tasks'
+
+    def get_queryset(self):
+        queryset = Task.objects.filter(user=self.request.user, status=self.status)
+
+        print(f"User: {self.request.user}, Status: {self.status}, QuerySet: {queryset}")
+
+        search_query = self.request.GET.get('search', '').strip()
+        if search_query:
+            query = Q()
+            for term in search_query.split():
+                query |= Q(title__icontains=term) | Q(description__icontains=term)
+            queryset = queryset.filter(query)
+
+        sort_param = self.request.GET.get('sort')
+        if sort_param:
+            queryset = queryset.order_by('-priority' if sort_param == 'priority' else sort_param)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'search_query': self.request.GET.get('search', ''),
+            'sort': self.request.GET.get('sort', ''),
+            'now': timezone.now(),
+        })
+        return context
+
+
 class AddTask(LoginRequiredMixin, CreateView):
     model = Task
     form_class = TaskForm
@@ -24,43 +56,52 @@ class AddTask(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class TaskListView(ListView, SortMixin):
-    model = Task
-    template_name = 'task_list.html'
-    context_object_name = 'tasks'
+class TaskListView(BaseTaskListView):
+    status = 'ACTIVЕ'
 
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return super().get(request, *args, **kwargs)
         return render(request, 'index.html')
 
-    def get_queryset(self):
-        queryset = Task.objects.filter(user=self.request.user, status='ACTIVЕ')
 
-        # Поиск
-        search_query = self.request.GET.get('search', '').strip()
-        if search_query:
-            # Разбиваем поисковый запрос на отдельные слова
-            search_terms = search_query.split()
-            query = Q()
-            for term in search_terms:
-                # Для каждого слова создаем условие поиска
-                query |= Q(title__icontains=term) | Q(description__icontains=term)
-            queryset = queryset.filter(query)
+class TaskCompleteListView(LoginRequiredMixin, BaseTaskListView):
+    status = 'DONE'
 
-        # Сортировка
-        queryset = self.get_sorted_queryset(queryset)
 
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'search_query': self.request.GET.get('search', ''),
-            'sort': self.request.GET.get('sort', ''),
-            'now': timezone.now(),
-        })
-        return context
+# class TaskListView(ListView, SortMixin):
+#     model = Task
+#     template_name = 'task_list.html'
+#     context_object_name = 'tasks'
+#
+#     def get(self, request, *args, **kwargs):
+#         if request.user.is_authenticated:
+#             return super().get(request, *args, **kwargs)
+#         return render(request, 'index.html')
+#
+#     def get_queryset(self):
+#         queryset = Task.objects.filter(user=self.request.user, status='ACTIVЕ')
+#
+#         search_query = self.request.GET.get('search', '').strip()
+#         if search_query:
+#             query = Q()
+#             for term in search_query.split():
+#                 query |= Q(title__icontains=term) | Q(description__icontains=term)
+#             queryset = queryset.filter(query)
+#
+#         sort_param = self.request.GET.get('sort')
+#         if sort_param:
+#             queryset = queryset.order_by('-priority' if sort_param == 'priority' else sort_param)
+#         return queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context.update({
+#             'search_query': self.request.GET.get('search', ''),
+#             'sort': self.request.GET.get('sort', ''),
+#             'now': timezone.now(),
+#         })
+#         return context
 
 
 class TaskView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -76,9 +117,6 @@ class TaskView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         messages.error(self.request, "У вас нет прав для просмотра этой задачи")
         return redirect('index')
 
-    def get_success_url(self):
-        return reverse_lazy('task_detail', kwargs={'pk': self.object.pk})
-
 
 class TaskEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Task
@@ -92,9 +130,6 @@ class TaskEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def handle_no_permission(self):
         messages.error(self.request, "У вас нет прав для редактирования этой задачи")
         return redirect('index')
-
-    def get_success_url(self):
-        return reverse_lazy('task_detail', kwargs={'pk': self.object.pk})
 
 
 class TaskDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -129,38 +164,40 @@ class TaskCompleteView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         return redirect('index')
 
 
-class TaskCompleteListView(LoginRequiredMixin, ListView, SortMixin):
-    model = Task
-    template_name = 'task_list.html'
-    context_object_name = 'tasks'
-
-    def get_queryset(self):
-        queryset = Task.objects.filter(user=self.request.user, status='DONE')
-
-        # Поиск
-        search_query = self.request.GET.get('search', '').strip()
-        if search_query:
-            # Разбиваем поисковый запрос на отдельные слова
-            search_terms = search_query.split()
-            query = Q()
-            for term in search_terms:
-                # Для каждого слова создаем условие поиска
-                query |= Q(title__icontains=term) | Q(description__icontains=term)
-            queryset = queryset.filter(query)
-
-        # Сортировка
-        queryset = self.get_sorted_queryset(queryset)
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'search_query': self.request.GET.get('search', ''),
-            'sort': self.request.GET.get('sort', ''),
-            'now': timezone.now(),
-        })
-        return context
+# class TaskCompleteListView(LoginRequiredMixin, ListView, SortMixin):
+#     model = Task
+#     template_name = 'task_list.html'
+#     context_object_name = 'tasks'
+#
+#     def get_queryset(self):
+#         queryset = Task.objects.filter(user=self.request.user, status='DONE')
+#
+#         # Поиск
+#         search_query = self.request.GET.get('search', '').strip()
+#         if search_query:
+#             # Разбиваем поисковый запрос на отдельные слова
+#             search_terms = search_query.split()
+#             query = Q()
+#             for term in search_terms:
+#                 # Для каждого слова создаем условие поиска
+#                 query |= Q(title__icontains=term) | Q(description__icontains=term)
+#             queryset = queryset.filter(query)
+#
+#         # Сортировка
+#         sort_param = self.request.GET.get('sort')
+#         if sort_param:
+#             queryset = queryset.order_by(sort_param)
+#
+#         return queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context.update({
+#             'search_query': self.request.GET.get('search', ''),
+#             'sort': self.request.GET.get('sort', ''),
+#             'now': timezone.now(),
+#         })
+#         return context
 
 
 class FavoriteTaskListView(LoginRequiredMixin, ListView):
