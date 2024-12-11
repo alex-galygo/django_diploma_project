@@ -5,12 +5,10 @@ from django.views.generic import ListView, DetailView, CreateView, DeleteView, U
 from django.urls import reverse_lazy
 from django.db.models import Q
 from django.utils import timezone
-from django.db.models.functions import Lower
 from django.contrib.auth.decorators import login_required
 
 from .models import Task, FavoriteTask
 from .forms import TaskForm
-from .mixins import SortMixin
 
 
 class BaseTaskListView(ListView):
@@ -20,8 +18,6 @@ class BaseTaskListView(ListView):
 
     def get_queryset(self):
         queryset = Task.objects.filter(user=self.request.user, status=self.status)
-
-        print(f"User: {self.request.user}, Status: {self.status}, QuerySet: {queryset}")
 
         search_query = self.request.GET.get('search', '').strip()
         if search_query:
@@ -41,8 +37,35 @@ class BaseTaskListView(ListView):
             'search_query': self.request.GET.get('search', ''),
             'sort': self.request.GET.get('sort', ''),
             'now': timezone.now(),
+            'title': self.title,
         })
         return context
+
+
+class TaskListView(BaseTaskListView):
+    status = 'ACTIVЕ'
+    title = 'Активные задачи'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return super().get(request, *args, **kwargs)
+        return render(request, 'index.html')
+
+
+class TaskCompleteListView(LoginRequiredMixin, BaseTaskListView):
+    status = 'DONE'
+    title = 'Выполненные задачи'
+
+
+class FavoriteTaskListView(BaseTaskListView):
+    title = 'Избранные задачи'
+
+    def get_queryset(self):
+        favorite_task_ids = FavoriteTask.objects.filter(
+            user=self.request.user
+        ).values_list('task_id', flat=True)
+        queryset = Task.objects.filter(id__in=favorite_task_ids)
+        return queryset
 
 
 class AddTask(LoginRequiredMixin, CreateView):
@@ -54,54 +77,6 @@ class AddTask(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
-
-
-class TaskListView(BaseTaskListView):
-    status = 'ACTIVЕ'
-
-    def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return super().get(request, *args, **kwargs)
-        return render(request, 'index.html')
-
-
-class TaskCompleteListView(LoginRequiredMixin, BaseTaskListView):
-    status = 'DONE'
-
-
-# class TaskListView(ListView, SortMixin):
-#     model = Task
-#     template_name = 'task_list.html'
-#     context_object_name = 'tasks'
-#
-#     def get(self, request, *args, **kwargs):
-#         if request.user.is_authenticated:
-#             return super().get(request, *args, **kwargs)
-#         return render(request, 'index.html')
-#
-#     def get_queryset(self):
-#         queryset = Task.objects.filter(user=self.request.user, status='ACTIVЕ')
-#
-#         search_query = self.request.GET.get('search', '').strip()
-#         if search_query:
-#             query = Q()
-#             for term in search_query.split():
-#                 query |= Q(title__icontains=term) | Q(description__icontains=term)
-#             queryset = queryset.filter(query)
-#
-#         sort_param = self.request.GET.get('sort')
-#         if sort_param:
-#             queryset = queryset.order_by('-priority' if sort_param == 'priority' else sort_param)
-#         return queryset
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context.update({
-#             'search_query': self.request.GET.get('search', ''),
-#             'sort': self.request.GET.get('sort', ''),
-#             'now': timezone.now(),
-#         })
-#         return context
 
 
 class TaskView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -164,6 +139,63 @@ class TaskCompleteView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         return redirect('index')
 
 
+@login_required
+def add_to_favorite(request, task_id):
+    if request.method == 'POST':
+        favorite = FavoriteTask.objects.filter(
+            user=request.user,
+            task_id=task_id
+        )
+
+        if favorite.exists():
+            favorite.delete()
+            Task.objects.filter(id=task_id).update(is_favorite=False)
+
+            messages.success(request, 'Задача удалена из избранного')
+        else:
+            FavoriteTask.objects.create(
+                user=request.user,
+                task_id=task_id
+            )
+            Task.objects.filter(id=task_id).update(is_favorite=True)
+            messages.success(request, 'Задача добавлена в избранное')
+
+    return redirect(request.META.get('HTTP_REFERER', 'task_list'))
+
+# class TaskListView(ListView, SortMixin):
+#     model = Task
+#     template_name = 'task_list.html'
+#     context_object_name = 'tasks'
+#
+#     def get(self, request, *args, **kwargs):
+#         if request.user.is_authenticated:
+#             return super().get(request, *args, **kwargs)
+#         return render(request, 'index.html')
+#
+#     def get_queryset(self):
+#         queryset = Task.objects.filter(user=self.request.user, status='ACTIVЕ')
+#
+#         search_query = self.request.GET.get('search', '').strip()
+#         if search_query:
+#             query = Q()
+#             for term in search_query.split():
+#                 query |= Q(title__icontains=term) | Q(description__icontains=term)
+#             queryset = queryset.filter(query)
+#
+#         sort_param = self.request.GET.get('sort')
+#         if sort_param:
+#             queryset = queryset.order_by('-priority' if sort_param == 'priority' else sort_param)
+#         return queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context.update({
+#             'search_query': self.request.GET.get('search', ''),
+#             'sort': self.request.GET.get('sort', ''),
+#             'now': timezone.now(),
+#         })
+#         return context
+
 # class TaskCompleteListView(LoginRequiredMixin, ListView, SortMixin):
 #     model = Task
 #     template_name = 'task_list.html'
@@ -200,65 +232,42 @@ class TaskCompleteView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 #         return context
 
 
-class FavoriteTaskListView(LoginRequiredMixin, ListView):
-    model = Task
-    template_name = 'task_list.html'
-    context_object_name = 'tasks'
-
-    def get_queryset(self):
-        # Получаем ID задач, которые в избранном у пользователя
-        favorite_task_ids = FavoriteTask.objects.filter(
-            user=self.request.user
-        ).values_list('task_id', flat=True)
-
-        # Получаем сами задачи
-        queryset = Task.objects.filter(id__in=favorite_task_ids)
-
-        # Поиск
-        search_query = self.request.GET.get('search', '').strip()
-        if search_query:
-            search_terms = search_query.split()
-            query = Q()
-            for term in search_terms:
-                query |= Q(title__icontains=term) | Q(description__icontains=term)
-            queryset = queryset.filter(query)
-
-        # Сортировка
-        sort_param = self.request.GET.get('sort')
-        if sort_param:
-            queryset = queryset.order_by(sort_param)
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'search_query': self.request.GET.get('search', ''),
-            'sort': self.request.GET.get('sort', ''),
-            'now': timezone.now(),
-        })
-        return context
-
-
-@login_required
-def add_to_favorite(request, task_id):
-    if request.method == 'POST':
-        favorite = FavoriteTask.objects.filter(
-            user=request.user,
-            task_id=task_id
-        )
-
-        if favorite.exists():
-            favorite.delete()
-            Task.objects.filter(id=task_id).update(is_favorite=False)
-
-            messages.success(request, 'Задача удалена из избранного')
-        else:
-            FavoriteTask.objects.create(
-                user=request.user,
-                task_id=task_id
-            )
-            Task.objects.filter(id=task_id).update(is_favorite=True)
-            messages.success(request, 'Задача добавлена в избранное')
-
-    return redirect(request.META.get('HTTP_REFERER', 'task_list'))
+# class FavoriteTaskListView(LoginRequiredMixin, ListView):
+#     model = Task
+#     template_name = 'task_list.html'
+#     context_object_name = 'tasks'
+#
+#     def get_queryset(self):
+#         # Получаем ID задач, которые в избранном у пользователя
+#         favorite_task_ids = FavoriteTask.objects.filter(
+#             user=self.request.user
+#         ).values_list('task_id', flat=True)
+#
+#         # Получаем сами задачи
+#         queryset = Task.objects.filter(id__in=favorite_task_ids)
+#
+#         # Поиск
+#         search_query = self.request.GET.get('search', '').strip()
+#         if search_query:
+#             search_terms = search_query.split()
+#             query = Q()
+#             for term in search_terms:
+#                 query |= Q(title__icontains=term) | Q(description__icontains=term)
+#             queryset = queryset.filter(query)
+#
+#         # Сортировка
+#         sort_param = self.request.GET.get('sort')
+#         if sort_param:
+#             queryset = queryset.order_by(sort_param)
+#
+#         return queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context.update({
+#             'search_query': self.request.GET.get('search', ''),
+#             'sort': self.request.GET.get('sort', ''),
+#             'now': timezone.now(),
+#             'title': 'Избранные задачи',
+#         })
+#         return context

@@ -53,3 +53,32 @@
         margin-top: 0.5rem;
     }
 }
+
+.content-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 220px;
+    padding: 10px;
+    flex-shrink: 0;
+}
+
+.main-content {
+    flex: 1;
+    padding: 10px;
+}
+
+/* Для адаптивности на мобильных устройствах */
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+    }
+}

@@ -17,8 +17,13 @@
     {% include 'inc/_nav.html' %}
 
     <div class="content-wrapper">
-        {% include 'inc/_messages.html' %}
-        {% block content %} Content {% endblock %}
+        <div class="sidebar">
+            {% include 'inc/_sidebar.html' %}
+        </div>
+        <div class="main-content">
+            {% include 'inc/_messages.html' %}
+            {% block content %}{% endblock %}
+        </div>
     </div>
 </div>
 

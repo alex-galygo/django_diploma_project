@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-z@k3pi!qxxbvv@!@fs$mcu_u0@apxkt6l#q^4uiuu3-*ipb2!h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.ngrok-free.app',
+]
 
 # Application definition
 
@@ -166,3 +170,11 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'SCHEMA_PATH_PREFIX': '/api/v1/',
 }
+
+# Если используется CSRF
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok.io',
+]
+
+# Для защиты от SSL
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

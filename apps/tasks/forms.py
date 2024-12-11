@@ -7,7 +7,7 @@ from .models import Task
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'description', 'due_date', 'priority', 'status']
+        fields = ['title', 'description', 'due_date', 'priority']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -25,7 +25,5 @@ class TaskForm(forms.ModelForm):
             'priority': forms.Select(attrs={
                 'class': 'form-select'
             }),
-            'status': forms.Select(attrs={
-                'class': 'form-select'
-            }),
+
         }

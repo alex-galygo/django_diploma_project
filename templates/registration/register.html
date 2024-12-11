@@ -10,7 +10,7 @@
         <div class="col-md-6 col-lg-4">
             <div class="card shadow">
                 <div class="card-body p-4">
-                    <h2 class="card-title text-center mb-4">Вход в систему</h2>
+                    <h2 class="card-title text-center mb-4">Регистрация</h2>
                     <form action="{% url 'register' %}" method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
